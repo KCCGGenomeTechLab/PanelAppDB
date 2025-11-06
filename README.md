@@ -1,5 +1,5 @@
 # PanelAppDB 
-Routinely (weekly) release PanelApp Australia database (panelapp-aus.org) compiled as a single .tsv file 
+Routinely (weekly) release PanelApp Australia database [panelapp-aus.org](panelapp-aus.org) compiled as a single .tsv file 
 
 `download_panelap_db.sh` script downloads all PanelApp AU panels, generates a manifest of panel IDs and versions, and combines individual panel TSVs into a single consolidated TSV file.
 

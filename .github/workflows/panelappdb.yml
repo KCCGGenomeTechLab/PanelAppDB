@@ -49,8 +49,13 @@ jobs:
             echo "No previous tag found, listing recent commits..."
             git log -10 --pretty=format:"- %s (%h)" > changelog.txt
           fi
+
+          # Read changelog into variable safely
+          CHANGELOG=$(<changelog.txt)
+
+          # Write to GITHUB_ENV properly
           echo "CHANGELOG<<EOF" >> $GITHUB_ENV
-          cat changelog.txt >> $GITHUB_ENV
+          echo "$CHANGELOG" >> $GITHUB_ENV
           echo "EOF" >> $GITHUB_ENV
 
       - name: Create GitHub Release
