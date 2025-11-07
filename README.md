@@ -12,3 +12,5 @@ Routinely (weekly) release PanelApp Australia database [panelapp-aus.org](panela
 wget https://github.com/KCCGGenomeTechLab/PanelAppDB/releases/latest/download/all_panels.tsv
 wget https://github.com/KCCGGenomeTechLab/PanelAppDB/releases/latest/download/panel_manifest.tsv
 ```
+
+The release and tag naming convention follows the format used by the [Human Phenotype Ontology (HPO) project](https://github.com/obophenotype/human-phenotype-ontology).
