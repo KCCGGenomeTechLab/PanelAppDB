@@ -1,4 +1,12 @@
 # PanelAppDB 
+
+[![Latest release](https://img.shields.io/github/v/release/KCCGGenomeTechLab/PanelAppDB?display_name=tag)](https://github.com/KCCGGenomeTechLab/PanelAppDB/releases/latest)
+[![Release date](https://img.shields.io/github/release-date/KCCGGenomeTechLab/PanelAppDB)](https://github.com/KCCGGenomeTechLab/PanelAppDB/releases)
+[![Downloads (total)](https://img.shields.io/github/downloads/KCCGGenomeTechLab/PanelAppDB/total)](https://github.com/KCCGGenomeTechLab/PanelAppDB/releases)
+[![Downloads (latest release)](https://img.shields.io/github/downloads/KCCGGenomeTechLab/PanelAppDB/latest/total)](https://github.com/KCCGGenomeTechLab/PanelAppDB/releases/latest)
+[![Workflow status](https://github.com/KCCGGenomeTechLab/PanelAppDB/actions/workflows/panelappdb.yml/badge.svg?branch=main)](https://github.com/KCCGGenomeTechLab/PanelAppDB/actions/workflows/panelappdb.yml)
+[![Website](https://img.shields.io/website?url=https%3A%2F%2Fpanelapp-aus.org)](https://panelapp-aus.org)
+
 Routinely (weekly) release PanelApp Australia database [panelapp-aus.org](panelapp-aus.org) compiled as a single .tsv file 
 
 `download_panelap_db.sh` script downloads all PanelApp AU panels, generates a manifest of panel IDs and versions, and combines individual panel TSVs into a single consolidated TSV file.
