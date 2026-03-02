@@ -92,7 +92,11 @@ download_all() {
     local out_file="${panels_dir}/${name}_${panel_id}_${version}.tsv"
 
     echo " - [$((++downloaded))/$total] ${panel_id} v${version} ${name}"
-    if ! curl -fsSL -o -H "User-Agent: Mozilla/5.0 -H "Accept: text/plain"" "$out_file" "$url"; then
+    if ! curl -fsSL \
+     -H "User-Agent: Mozilla/5.0" \
+     -H "Accept: text/plain" \
+     -o "$out_file" \
+     "$url"; then
       die "Failed to download panel ${panel_id} (v${version}) from ${url}"
     fi
     sleep 1  # uncomment to be gentle on the server
