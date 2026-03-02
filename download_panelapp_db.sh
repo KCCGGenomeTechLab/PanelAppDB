@@ -80,6 +80,8 @@ download_all() {
   local total downloaded=0
   total="$(($(wc -l <"$manifest") - 1))" || total=0
 
+  curl -v https://panelapp-aus.org/ || die "failed to connect to https://panelapp-aus.org/"
+
   # Skip header line by starting from line 2
   tail -n +2 "$manifest" | while IFS=$'\t' read -r panel_id version name; do
     [ -n "$panel_id" ] && [ -n "$version" ] || continue
@@ -90,7 +92,7 @@ download_all() {
     local out_file="${panels_dir}/${name}_${panel_id}_${version}.tsv"
 
     echo " - [$((++downloaded))/$total] ${panel_id} v${version} ${name}"
-    if ! curl -fsSL -o "$out_file" "$url"; then
+    if ! curl -fsSL -o -H "User-Agent: Mozilla/5.0 -H "Accept: text/plain"" "$out_file" "$url"; then
       die "Failed to download panel ${panel_id} (v${version}) from ${url}"
     fi
     sleep 1  # uncomment to be gentle on the server
