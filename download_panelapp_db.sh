@@ -93,7 +93,7 @@ download_all() {
     if ! curl -fsSL -o "$out_file" "$url"; then
       die "Failed to download panel ${panel_id} (v${version}) from ${url}"
     fi
-    sleep 0.1  # uncomment to be gentle on the server
+    sleep 1  # uncomment to be gentle on the server
 
     # stop early if limit is reached (only if count_limit > 0)
     if (( count_limit > 0 && downloaded >= count_limit )); then
