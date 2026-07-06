@@ -14,7 +14,7 @@ set -o pipefail
 # - API base can be overridden with env var PANELAPP_API_BASE
 #   e.g., PANELAPP_API_BASE="https://panelapp.agha.umccr.org/api/v1" ./panelapp_to_tsv2.sh outdir
 
-API_BASE_DEFAULT="https://panelapp-aus-staging.org/api/v1"
+API_BASE_DEFAULT="https://panelapp-aus.org/api/v1"
 
 EXPECTED_HEADER=$'Entity_Name\tEntity_type\tGene_Symbol\tSources(;_separated)\tLevel4\tLevel3\tLevel2\tModel_Of_Inheritance\tPhenotypes\tOmim\tOrphanet\tHPO\tPublications\tDescription\tFlagged\tGEL_Status\tUserRatings_Green_amber_red\tversion\tready\tMode_of_pathogenicity\tEnsemblId(GRch37)\tEnsemblId(GRch38)\tHGNC\tPosition_Chromosome\tPosition_GRCh37_Start\tPosition_GRCh37_End\tPosition_GRCh38_Start\tPosition_GRCh38_End\tSTR_Repeated_Sequence\tSTR_Normal_Repeats\tSTR_Pathogenic_Repeats\tRegion_Haploinsufficiency_Score\tRegion_Triplosensitivity_Score\tRegion_Required_Overlap_Percentage\tRegion_Variant_Type\tRegion_Verbose_Name'
 
@@ -79,8 +79,6 @@ download_all() {
   echo "Downloading panel TSVs into: $panels_dir"
   local total downloaded=0
   total="$(($(wc -l <"$manifest") - 1))" || total=0
-
-  curl -v https://panelapp-aus.org/ || die "failed to connect to https://panelapp-aus.org/"
 
   # Skip header line by starting from line 2
   tail -n +2 "$manifest" | while IFS=$'\t' read -r panel_id version name; do
