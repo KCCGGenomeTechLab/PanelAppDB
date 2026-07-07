@@ -116,25 +116,9 @@ concat_tsvs() {
 
   [ -d "$panels_dir" ] || die "Panels directory not found: $panels_dir"
 
-  # Find first TSV to capture header
-  local first_tsv
-  first_tsv="$(ls -1 "$panels_dir"/*.tsv 2>/dev/null | head -n 1)"
-  [ -n "$first_tsv" ] || die "No TSV files found in $panels_dir"
-
-  local header
-  header="$(head -n 1 "$first_tsv")"
-  [ -n "$header" ] || die "First TSV appears empty: $first_tsv"
-
-  local header_us
-  header_us="$(head -n 1 "$first_tsv" | tr -d '\r' | sed 's/ /_/g')"
-
-  if [[ "$header_us" != "$EXPECTED_HEADER" ]]; then
-    echo "Expected:$EXPECTED_HEADER"
-    echo "Found:$header_us"
-    # Helpful debug: show differences in a visible/escaped form
-    printf 'Expected (repr): %q\n' "$EXPECTED_HEADER"
-    printf 'Found    (repr): %q\n' "$header_us"
-    die "Header in first TSV does not match expected format: $first_tsv"
+  # Ensure at least one panel TSV exists
+  if ! ls -1 "$panels_dir"/*.tsv >/dev/null 2>&1; then
+    die "No TSV files found in $panels_dir"
   fi
 
   echo "Writing combined TSV: $combined"
@@ -150,17 +134,65 @@ concat_tsvs() {
     panel_id=${rest##*_}       # "3302"         (after second-to-last underscore)
     name=${rest%_*}            # "Additional findings_Paediatric" (optional)
 
-    tail -n +2 "$f" | awk -F'\t' -v OFS='\t' -v id="$panel_id" -v ver="$panel_version" '
-      NF==0 { next }                              # skip empty lines
+    # Validate THIS panel's header against the expected schema (space -> _,
+    # CR stripped) so a panel with reordered/renamed/missing columns fails
+    # loudly instead of silently misaligning the combined output.
+    local header_us
+    header_us="$(head -n 1 "$f" | tr -d '\r' | sed 's/ /_/g')"
+    if [[ "$header_us" != "$EXPECTED_HEADER" ]]; then
+      echo "Expected (repr): $(printf '%q' "$EXPECTED_HEADER")" >&2
+      echo "Found    (repr): $(printf '%q' "$header_us")" >&2
+      die "Header does not match expected format in: $f"
+    fi
+
+    tail -n +2 "$f" | awk -v OFS='\t' -v id="$panel_id" -v ver="$panel_version" -v fn="$base" '
+      # PanelApp download endpoint wraps fields that contain tabs/commas in
+      # double quotes (CSV-style) but leaves the literal tab inside them, which
+      # otherwise splits one field into several columns. Parse quote-aware:
+      # tabs inside quotes become spaces, doubled quotes ("") unescape to one,
+      # and wrapping quotes are dropped, so every row lands on exactly 36 cols.
       {
-        gsub(/\r+$/, "", $0)                      # strip CR (Windows line endings)
-        $1 = $1                                   # rebuild $0 from fields -> removes trailing tabs
-        print $0, id, ver
+        line = $0
+        sub(/\r+$/, "", line)                     # strip CR (Windows line endings)
+        if (line == "") next                      # skip empty lines
+
+        nf = 0; field = ""; inq = 0
+        n = length(line)
+        for (i = 1; i <= n; i++) {
+          c = substr(line, i, 1)
+          if (c == "\"") {
+            if (inq && substr(line, i + 1, 1) == "\"") { field = field "\""; i++ }
+            else { inq = !inq }
+          } else if (c == "\t" && !inq) {
+            fld[++nf] = field; field = ""
+          } else if (c == "\t") {
+            field = field " "                       # tab inside a quoted field
+          } else {
+            field = field c
+          }
+        }
+        fld[++nf] = field                         # last field
+
+        rec = fld[1]
+        for (j = 2; j <= nf; j++) rec = rec OFS fld[j]
+        print rec, id, ver
+
+        if (nf != 36)
+          printf("WARN: %s: row parsed to %d fields (expected 36), panel %s v%s\n",
+                 fn, nf, id, ver) > "/dev/stderr"
       }
     ' >>"$combined" || die "Failed to append $f"
   done
 
-  echo "Concatenation complete: $combined"
+  # Assertion: every data row in the combined TSV must have exactly 38 columns
+  # (36 source columns + Panel_ID + Panel_Version). Fail loudly otherwise.
+  local bad_rows
+  bad_rows="$(tail -n +2 "$combined" | awk -F'\t' 'NF != 38 { c++ } END { print c + 0 }')"
+  if [ "$bad_rows" -ne 0 ]; then
+    die "$bad_rows row(s) in $combined do not have 38 columns (see WARN lines above)"
+  fi
+
+  echo "Concatenation complete: $combined ($(($(wc -l <"$combined") - 1)) rows, all 38 columns)"
 }
 
 main() {
